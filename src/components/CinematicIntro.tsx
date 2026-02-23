@@ -68,7 +68,7 @@ export default function CinematicIntro({ onComplete }: CinematicIntroProps) {
             onClick={onComplete}
             className="voca-sweep voca-glow-box mt-16 rounded-full border border-primary/30 bg-primary/10 px-10 py-4 font-display text-sm font-medium uppercase tracking-[0.2em] text-primary transition-all duration-300 hover:border-primary/60 hover:bg-primary/20"
           >
-            Begin Projection
+            Start Projection
           </motion.button>
         )}
       </AnimatePresence>
