@@ -1,16 +1,15 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import NeuralBackground from "./NeuralBackground";
-import HeroLanding from "./HeroLanding";
 import CinematicIntro from "./CinematicIntro";
 import Assessment from "./Assessment";
 import Processing from "./Processing";
 import Reveal from "./Reveal";
 
-type Scene = "hero" | "intro" | "assessment" | "processing" | "reveal";
+type Scene = "intro" | "assessment" | "processing" | "reveal";
 
 export default function VocaExperience() {
-  const [scene, setScene] = useState<Scene>("hero");
+  const [scene, setScene] = useState<Scene>("intro");
   const [answers, setAnswers] = useState<number[]>([]);
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
   const rafRef = useRef<number>(0);
@@ -32,7 +31,6 @@ export default function VocaExperience() {
   }, []);
 
   const bgIntensity =
-    scene === "hero" ? 0.2 :
     scene === "intro" ? 0.3 :
     scene === "assessment" ? 0.5 :
     scene === "processing" ? 0.8 :
@@ -49,7 +47,7 @@ export default function VocaExperience() {
 
   const handleRestart = useCallback(() => {
     setAnswers([]);
-    setScene("hero");
+    setScene("intro");
   }, []);
 
   // Parallax: background slowest, neural grid faster, text static
@@ -89,7 +87,6 @@ export default function VocaExperience() {
           transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="relative z-10"
         >
-          {scene === "hero" && <HeroLanding onEnter={() => setScene("intro")} />}
           {scene === "intro" && <CinematicIntro onComplete={() => setScene("assessment")} />}
           {scene === "assessment" && <Assessment onComplete={handleAssessmentComplete} />}
           {scene === "processing" && <Processing onComplete={handleProcessingComplete} />}
