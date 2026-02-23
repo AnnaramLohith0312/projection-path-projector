@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import NeuralBackground from "./NeuralBackground";
 import CinematicIntro from "./CinematicIntro";
@@ -11,6 +11,24 @@ type Scene = "intro" | "assessment" | "processing" | "reveal";
 export default function VocaExperience() {
   const [scene, setScene] = useState<Scene>("intro");
   const [answers, setAnswers] = useState<number[]>([]);
+  const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        const x = (e.clientX / window.innerWidth - 0.5) * 2;
+        const y = (e.clientY / window.innerHeight - 0.5) * 2;
+        setMouseOffset({ x, y });
+      });
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   const bgIntensity =
     scene === "intro" ? 0.3 :
@@ -32,14 +50,34 @@ export default function VocaExperience() {
     setScene("intro");
   }, []);
 
+  // Parallax: background slowest, neural grid faster, text static
+  const bgTranslate = `translate(${mouseOffset.x * -4}px, ${mouseOffset.y * -4}px)`;
+  const neuralTranslate = `translate(${mouseOffset.x * -10}px, ${mouseOffset.y * -10}px)`;
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
-      {/* Layers */}
-      <NeuralBackground intensity={bgIntensity} />
+      {/* Layer 1: Background gradient — slowest parallax */}
+      <div
+        className="fixed inset-[-20px] z-0 transition-transform duration-700 ease-out"
+        style={{
+          transform: bgTranslate,
+          background: "radial-gradient(ellipse at 40% 40%, hsl(191 100% 42% / 0.04) 0%, transparent 60%), hsl(0 0% 4%)",
+        }}
+      />
+
+      {/* Layer 2: Neural grid — medium parallax */}
+      <div
+        className="fixed inset-[-20px] z-[1] transition-transform duration-500 ease-out"
+        style={{ transform: neuralTranslate }}
+      >
+        <NeuralBackground intensity={bgIntensity} />
+      </div>
+
+      {/* Atmosphere overlays */}
       <div className="voca-vignette" />
       <div className="voca-grain" />
 
-      {/* Scene content */}
+      {/* Layer 3: Foreground content — no parallax, stable */}
       <AnimatePresence mode="wait">
         <motion.div
           key={scene}
@@ -47,6 +85,7 @@ export default function VocaExperience() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="relative z-10"
         >
           {scene === "intro" && <CinematicIntro onComplete={() => setScene("assessment")} />}
           {scene === "assessment" && <Assessment onComplete={handleAssessmentComplete} />}
